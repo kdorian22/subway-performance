@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/kdorian22/subway-performance/static/css/main.e6c13ad2.css",
-    "main.js": "/kdorian22/subway-performance/static/js/main.334248f8.js",
-    "index.html": "/kdorian22/subway-performance/index.html",
-    "main.e6c13ad2.css.map": "/kdorian22/subway-performance/static/css/main.e6c13ad2.css.map",
-    "main.334248f8.js.map": "/kdorian22/subway-performance/static/js/main.334248f8.js.map"
+    "main.css": "/subway-performance/static/css/main.e6c13ad2.css",
+    "main.js": "/subway-performance/static/js/main.334248f8.js",
+    "index.html": "/subway-performance/index.html",
+    "main.e6c13ad2.css.map": "/subway-performance/static/css/main.e6c13ad2.css.map",
+    "main.334248f8.js.map": "/subway-performance/static/js/main.334248f8.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
