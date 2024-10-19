@@ -1,23 +1,41 @@
-import  React, {useState} from 'react';
+import  React, { useState, useMemo } from 'react';
 import './App.css';
+import Header from './Header';
+import { Colors, ColorsAPI, PerformanceEvent } from './Types';
+import PerformancePlot from './PerformancePlot';
 
-type event = {
-  month: string,
-  division: string,
-  line: string,
-  day_type: number,
-  category: string,
-  count: number
+
+const getColors = async (
+  setColors: (colors: Colors) => void,
+  setIsLoading: (isLoading: boolean) => void
+) => {
+  const apiResp  = await fetch(`https://data.ny.gov/resource/3uhz-sej2.json`, {
+    method: 'GET',
+  })
+
+  const resp: ColorsAPI[] = await apiResp.json()
+
+  const colors: Colors =  {}
+
+  resp.forEach((d) => {
+    const lines = d.service.split(',')
+    lines.forEach((l) => {
+      colors[l] = d.hex_color
+    })
+  })
+
+  setColors(colors)
+  setIsLoading(false)
 }
 
 const getData = async (
-  setEventData: (data: event[]) => void, 
+  setEventData: (data: PerformanceEvent[]) => void, 
   incidentsOrDelays: 'I' | 'D',
   setIsLoading: (isLoading: boolean) => void
 ) => {
   let newData = true
   let offset = 0
-  let events: event[] = []
+  let events: PerformanceEvent[] = []
 
   const endpoint = incidentsOrDelays === 'I' ? 'j6d2-s8m2' : 'wx2t-qtaz' 
   try{
@@ -52,11 +70,14 @@ const getData = async (
 }
 
 function App() {
-  const [incidents, setIncidents] = useState<event[]>([])
-  const [delays, setDelays] = useState<event[]>([])
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
+  const [incidents, setIncidents] = useState<PerformanceEvent[]>([])
+  const [delays, setDelays] = useState<PerformanceEvent[]>([])
+  const [colors, setColors] = useState<Colors>({})
 
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(true)
   const [isLoadingDelays, setIsLoadingDelays] = useState(true)
+  const [isLoadingColors, setIsLoadingColors] = useState(true)
 
   if(!incidents.length && isLoadingIncidents){
     getData(setIncidents, 'I', setIsLoadingIncidents)
@@ -66,12 +87,23 @@ function App() {
     getData(setDelays, 'D', setIsLoadingDelays)
   }
 
+  if(!colors.length && isLoadingColors){
+    getColors(setColors, setIsLoadingColors)
+  }
+  const activeLines = useMemo<string[]>(() => {
+    if(!isLoadingDelays && !isLoadingIncidents && colors){
+      return Array.from(new Set([...incidents.map((d) => d.line), ...delays.map((d) => d.line)])).filter((d) => d in colors)
+    }
+    return []
+  }, [isLoadingDelays, isLoadingIncidents, incidents, delays, colors])
+  
   return (
-    <div onClick={() => console.log('Incidents', incidents.slice(0, 5), incidents.length)} className="App">
-			NYC Subway Performance
-      <div> Total Incidents: {isLoadingIncidents ? '#...' : incidents.length} </div>
-      <div> Total Delays: {isLoadingDelays ? '#...' : delays.length} </div>
-    </div>
+    <>
+      <Header backgroundColor={colors['MTA'] || 'rgb(0, 57, 165)'}/>
+      <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', padding: '12px'}}>
+        <PerformancePlot selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} incidents={incidents} delays={delays} lines={activeLines} colors={colors} />
+      </div>
+    </>
   );
 }
 
