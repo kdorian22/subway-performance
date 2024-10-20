@@ -24,7 +24,7 @@ function PerformanceTimeSeries({
         lines
     }: PerformanceTimeSeriesProps) {
     const svgRef = useRef(null)
-    const [svgSize, setSVGSize] = useState(document?.body?.offsetWidth - (document?.body?.offsetWidth/(document?.body?.offsetWidth < 584 ? 1 : 2.5 )) - 24)
+    const [svgSize, setSVGSize] = useState(document?.body?.offsetWidth < 584 ? document?.body?.offsetWidth -24 :document?.body?.offsetWidth - (document?.body?.offsetWidth/(2.5)) - 24)
     const margins = {left: 60, top: 15, right: 15, bottom: 50}
     const abbr = svgSize < 300
     const incidentMap = rollup(incidents, (d) => sum(d.map((d) => d.count)), (d) => d.month, (d) => d.line)
@@ -34,12 +34,12 @@ function PerformanceTimeSeries({
 
     useEffect(() => {
 		if(document?.body){
-			setSVGSize(document?.body?.offsetWidth - (document?.body?.offsetWidth/(document?.body?.offsetWidth < 584 ? 1 : 2.5 )) - 24 || 300)
+			setSVGSize(document?.body?.offsetWidth < 584 ? document?.body?.offsetWidth -24 :document?.body?.offsetWidth - (document?.body?.offsetWidth/(2.5)) - 24 || 300)
 		}
 
 		function handleResize(this: Window){
 			if(document?.body){
-				setSVGSize(document?.body?.offsetWidth - (document?.body?.offsetWidth/(document?.body?.offsetWidth < 584 ? 1 : 2.5 )) - 24 || 300)
+				setSVGSize(document?.body?.offsetWidth < 584 ? document?.body?.offsetWidth -24 :document?.body?.offsetWidth - (document?.body?.offsetWidth/(2.5)) - 24 || 300)
 			}
 		}
 
@@ -72,8 +72,8 @@ function PerformanceTimeSeries({
         const xAxis = g.append('g').call(axisBottom(xScale).tickFormat((d) => dayjs(d).format('MMM-YY'))).attr('transform', `translate(0, ${height})`)
         g.append('g').call(axisLeft(yScale).ticks(5)).attr('transform', `translate(0, 0)`)
 
-        xAxis.selectAll('.tick').style('display', 'none')
-        xAxis.selectAll('.tick:nth-child(5n)').style('display', 'block')
+        xAxis.selectAll('.tick')
+        xAxis.selectAll('.tick:nth-child(8n)').style('display', 'block')
 
         svg.append('text')
         .text('Count')
