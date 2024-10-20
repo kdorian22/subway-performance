@@ -115,7 +115,7 @@ function PerformanceTimeSeries({
                         .attr('y', 15)
                         .attr('text-anchor', 'left')
                         .attr('font-size', '10px')
-                        .text(val)
+                        .text(`${selectedPlot === 'D' ? 'Delays' : 'Incidents'}: ${val}`)
                         
                     }
     
@@ -146,7 +146,10 @@ function PerformanceTimeSeries({
 
     return (
         <>
-            <span style={{fontSize: '14px', fontWeight: 'bold'}}> {selectedLine} Train {selectedPlot === 'I' ? 'Incidents' : 'Delays'} Over Time</span>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{fontSize: '14px', fontWeight: 'bold'}}> {selectedLine} Train {selectedPlot === 'I' ? 'Incidents' : 'Delays'} Over Time</span>
+                <button type="button" style={{cursor: 'pointer'}} onClick={() => setSelectedPlot(selectedPlot === 'D' ? 'I' : 'D')}> Show {selectedPlot === 'D' ? 'Incidents' : 'Delays'} </button>
+            </div>
             <svg ref={svgRef}> </svg>
         </>
         )
