@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/subway-performance/static/css/main.e6c13ad2.css",
-    "main.js": "/subway-performance/static/js/main.2fb8f2cc.js",
+    "main.css": "/subway-performance/static/css/main.ca300785.css",
+    "main.js": "/subway-performance/static/js/main.ba9b0070.js",
     "index.html": "/subway-performance/index.html",
-    "main.e6c13ad2.css.map": "/subway-performance/static/css/main.e6c13ad2.css.map",
-    "main.2fb8f2cc.js.map": "/subway-performance/static/js/main.2fb8f2cc.js.map"
+    "main.ca300785.css.map": "/subway-performance/static/css/main.ca300785.css.map",
+    "main.ba9b0070.js.map": "/subway-performance/static/js/main.ba9b0070.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6c13ad2.css",
-    "static/js/main.2fb8f2cc.js"
+    "static/css/main.ca300785.css",
+    "static/js/main.ba9b0070.js"
   ]
 }
