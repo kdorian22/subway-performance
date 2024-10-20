@@ -119,7 +119,6 @@ function App() {
 		return () => window.removeEventListener('resize', handleResize)
 
 	}, [])
-
   return (
     <>
       <Header backgroundColor={colors['MTA'] || 'rgb(0, 57, 165)'}/>

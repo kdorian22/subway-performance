@@ -106,7 +106,7 @@ function PerformancePlot({
         })
 
 
-        const xScale = scaleLinear().domain([0, 15]).range([0, width])
+        const xScale = scaleLinear().domain([0, 12]).range([0, width])
         const yScale = scaleLinear().domain([4800,0]).range([0, height])
 
         g.append('g').call(axisBottom(xScale).ticks(5)).attr('transform', `translate(0, ${height})`)
