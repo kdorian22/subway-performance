@@ -137,6 +137,7 @@ function PerformancePlot({
                 monthAgg = monthAgg.sort((a, b) => descending(a.line === selectedLine ? 0 : 1, b.line === selectedLine ? 0 : 1))
             }
 
+
             const ele = g.selectAll('circ')
             .data(monthAgg.filter((d) => d.delays && d.incidents))
             .enter()
@@ -166,6 +167,49 @@ function PerformancePlot({
             .style('alignment-baseline', 'central')
             .style('text-anchor', 'middle')
             .style('fill', (d) => ['N', 'R', 'W', 'Q'].includes(d.line) ? 'black' : 'white')
+
+            const toolTip = g.append('g').style('display', 'none')
+
+            
+            ele.on('mouseover', (_e, d) => {
+                toolTip
+                .style('display', 'block')
+                .append('rect')
+                .attr('x', Number(xScale(d.incidents)) + 18)
+                .attr('y',  Number(yScale(d.delays)) - 21)
+                .attr('width', 65)
+                .attr('height', 40)
+                .style('fill', 'rgb(80,80,80)')
+                .style('stroke', 'black')
+                .style('opacity', 1)
+                
+                
+                toolTip.append('text')
+                .attr('x', Number(xScale(d.incidents)) + 22)
+                .attr('y', Number(yScale(d.delays)) - 10)
+                .style('font-weight', 'bold')
+                .style('font-size', '10px')
+                .text(`${d.line} Train`)
+                .style('fill', 'white')
+
+                toolTip.append('text')
+                .attr('x', Number(xScale(d.incidents)) + 22)
+                .attr('y', Number(yScale(d.delays))+ 2)
+                .style('font-size', '10px')
+                .text(`Delays: ${d.delays}`)
+                .style('fill', 'white')
+
+                toolTip.append('text')
+                .attr('x', Number(xScale(d.incidents)) + 22)
+                .attr('y', Number(yScale(d.delays)) + 14)
+                .style('font-size', '10px')
+                .text(`Incidents: ${d.incidents}`)
+                .style('fill', 'white')
+            })
+            .on('mouseout', (_e, d) => {
+                toolTip.selectAll('*').remove()
+                toolTip.style('display', 'none')
+            })
 
             
         }
