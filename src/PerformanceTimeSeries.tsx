@@ -69,7 +69,7 @@ function PerformanceTimeSeries({
         const xScale = scaleBand().domain(months).range([0, width])
         const yScale = scaleLinear().domain(selectedPlot === 'I' ? [15,0] : [4800,0]).range([0, height])
 
-        const xAxis = g.append('g').call(axisBottom(xScale).tickFormat((d) => dayjs(d).format('MMM-YY'))).attr('transform', `translate(0, ${height})`)
+        const xAxis = g.append('g').call(axisBottom(xScale).tickFormat((d) => dayjs(d).format('M/YY'))).attr('transform', `translate(0, ${height})`)
         g.append('g').call(axisLeft(yScale).ticks(5)).attr('transform', `translate(0, 0)`)
 
         xAxis.selectAll('.tick').style('display', 'none')
