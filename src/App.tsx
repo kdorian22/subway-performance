@@ -1,8 +1,11 @@
-import  React, { useState, useMemo } from 'react';
+import  React, { useState, useMemo, useEffect } from 'react';
+import dayjs  from 'dayjs'
 import './App.css';
 import Header from './Header';
 import { Colors, ColorsAPI, PerformanceEvent } from './Types';
 import PerformancePlot from './PerformancePlot';
+import PerformanceTable from './PerformanceTable';
+import PerformanceTimeSeries from './PerformanceTimeSeries';
 
 
 const getColors = async (
@@ -71,6 +74,8 @@ const getData = async (
 
 function App() {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
+  const [selectedLine, setSelectedLine] = useState<string | null>('1')
+
   const [incidents, setIncidents] = useState<PerformanceEvent[]>([])
   const [delays, setDelays] = useState<PerformanceEvent[]>([])
   const [colors, setColors] = useState<Colors>({})
@@ -96,13 +101,73 @@ function App() {
     }
     return []
   }, [isLoadingDelays, isLoadingIncidents, incidents, delays, colors])
-  
+
+  const [abbr, setAbbr] = useState(document?.body?.offsetWidth < 584)
+
+  useEffect(() => {
+		if(document?.body){
+			setAbbr(document?.body?.offsetWidth < 584)
+		}
+
+		function handleResize(this: Window){
+			if(document?.body){
+				setAbbr(document?.body?.offsetWidth < 584)
+			}
+		}
+
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+
+	}, [])
+
   return (
     <>
       <Header backgroundColor={colors['MTA'] || 'rgb(0, 57, 165)'}/>
-      <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', padding: '12px'}}>
-        <PerformancePlot selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} incidents={incidents} delays={delays} lines={activeLines} colors={colors} />
+      <div style={{padding: '12px'}}>
+        <div style={{fontSize: '18px', fontWeight: 'bold'}}> {selectedMonth ? dayjs(selectedMonth).format('MMMM YYYY') : ''} </div>
+        <div style={{display: 'flex', gap: '20px', justifyContent: 'space-between', flexDirection: abbr ? 'column' : 'row'}}>
+          <PerformancePlot
+            selectedLine={selectedLine}
+            setSelectedLine={setSelectedLine} 
+            selectedMonth={selectedMonth} 
+            setSelectedMonth={setSelectedMonth} 
+            incidents={incidents} 
+            delays={delays} 
+            lines={activeLines} 
+            colors={colors} 
+            />
+            <div id="parent" style={{width: '100%'}}>
+              <div>
+                <PerformanceTimeSeries  
+                  incidents={incidents} 
+                  delays={delays} 
+                  lines={activeLines} 
+                  colors={colors}
+                  selectedLine={selectedLine}
+                  selectedMonth={selectedMonth} 
+                  />
+              </div>
+              <div style={{width: '100%', display: 'flex', gap: '20px', justifyContent: 'space-between', flexDirection: abbr ? 'column' : 'row'}}>
+                <div style={{width: abbr ? '100%' : '50%'}} >
+                  <PerformanceTable selectedMonth={selectedMonth} selectedLine={selectedLine} incidentOrDelay="D" data={delays} colors={colors}/>
+                </div>
+                <div style={{width: abbr ? '100%' : '50%'}} >
+                  <PerformanceTable selectedMonth={selectedMonth} selectedLine={selectedLine} incidentOrDelay="I" data={incidents} colors={colors}/>
+                </div>
+              </div>
+            </div>
+        </div>
       </div>
+      {(isLoadingDelays || isLoadingIncidents || isLoadingColors) && (
+          <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: 'black', left: 0, top: 0, opacity: 0.8}}>
+              <div style={{position: 'relative', width: '100%', height: '100%'}}>
+                <div className="container">   
+                  <div className="track"></div>
+                  <div className="train"></div>
+                </div>
+              </div>
+          </div>
+      )}
     </>
   );
 }

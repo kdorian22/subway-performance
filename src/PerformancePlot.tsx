@@ -1,7 +1,9 @@
 import  React, { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { ascending, axisBottom, axisLeft, rollup, scaleLinear, select } from 'd3';
+import { ascending, axisBottom, axisLeft, descending, rollup, scaleLinear, select, sum } from 'd3';
 import { PerformanceEvent, Colors } from './Types';
+import Slider from '@mui/material/Slider';
+import dayjs from 'dayjs';
 
 type MonthAgg = {
     line: string,
@@ -15,18 +17,52 @@ type PerformancePlotProps = {
     colors: Colors
     selectedMonth: string | null
     setSelectedMonth: (selectedMonth: string | null) => void
+    selectedLine: string | null 
+    setSelectedLine: (selectedMonth: string | null) => void
     lines: string[]
 }
 
-function PerformancePlot({incidents, delays, colors, selectedMonth, setSelectedMonth, lines}: PerformancePlotProps) {
+
+
+function PerformancePlot({
+        incidents, 
+        delays, 
+        colors, 
+        selectedMonth, 
+        setSelectedMonth, 
+        selectedLine, 
+        setSelectedLine, 
+        lines
+    }: PerformancePlotProps) {
     const svgRef = useRef(null)
     const [svgSize, setSVGSize] = useState(((document?.body?.offsetWidth/(document?.body?.offsetWidth < 584 ? 1 : 2.5 )) - 24) || 584 - 24)
     const margins = {left: 60, top: 15, right: 15, bottom: 50}
     const abbr = svgSize < 300
-    const incidentMap = rollup(incidents, (d) => d.length, (d) => d.month, (d) => d.line)
-    const delayMap = rollup(delays, (d) => d.length, (d) => d.month, (d) => d.line)
+    const incidentMap = rollup(incidents, (d) => sum(d.map((d) => d.count)), (d) => d.month, (d) => d.line)
+    const delayMap = rollup(delays, (d) => sum(d.map((d) => d.count)), (d) => d.month, (d) => d.line)
     const months = [...Array.from(incidentMap).map((d) => d[0]), ...Array.from(delayMap).map((d) => d[0])].sort((a, b) => ascending(a, b))
-    
+    const sliderMarks = [
+        {
+          value: 0,
+          label: dayjs(months[0]).format('MMM. YYYY'),
+        },
+        {
+            value: months.length * .25,
+            label: dayjs(months[months.length * .25]).format('MMM. YYYY'),
+          },
+          {
+            value: months.length *.5,
+            label: dayjs(months[months.length * .5]).format('MMM. YYYY'),
+          },
+          {
+            value: months.length *.75,
+            label: dayjs(months[months.length * .75]).format('MMM. YYYY'),
+          },
+          {
+            value: months.length - 1,
+            label: dayjs(months[months.length - 1]).format('MMM. YYYY'),
+          },
+      ];
 
     useEffect(() => {
 		if(document?.body){
@@ -51,36 +87,70 @@ function PerformancePlot({incidents, delays, colors, selectedMonth, setSelectedM
             setSelectedMonth(months[0])
         }
 
+        const width = svgSize - margins.left - margins.right
+        const height = svgSize - margins.top - margins.left
+
+        const svg = select(svgRef.current)
+            .attr('width', svgSize)
+            .attr('height', svgSize)
+        
+        const g = svg.append('g')
+            .attr('transform', `translate(${margins.left},${margins.top})`)
+        
+        g.append('rect')
+        .attr('width', width)
+        .attr('height', height)
+        .style('fill', 'rgb(215,215,215)')
+        .on('click', () => {
+            setSelectedLine(null)
+        })
+
+
+        const xScale = scaleLinear().domain([0, 15]).range([0, width])
+        const yScale = scaleLinear().domain([4800,0]).range([0, height])
+
+        g.append('g').call(axisBottom(xScale).ticks(5)).attr('transform', `translate(0, ${height})`)
+        g.append('g').call(axisLeft(yScale).ticks(5)).attr('transform', `translate(0, 0)`)
+
+        svg.append('text')
+        .text('Delays')
+        .style('font-size', abbr ? '13px' : '16px')
+        .attr('transform', `translate(${margins.left/2.5}, ${svgSize/2})rotate(-90)`)
+
+        svg.append('text')
+        .text('Major Incidents')
+        .style('font-size', abbr ? '13px' : '16px')
+        .attr('transform', `translate(${width/2}, ${height + margins.top + margins.bottom / 1.5})`)
+        .style('alignment-baseline', 'central')
+        
         if(selectedMonth){
             const monthIncident = incidentMap.get(selectedMonth)
             const monthDelay = delayMap.get(selectedMonth)
-            const monthAgg: MonthAgg[] = []
+            let monthAgg: MonthAgg[] = []
             lines.forEach((d) => {
                     const lineIncident = monthIncident?.get(d)
                     const lineDelay = monthDelay?.get(d)
                     monthAgg.push({'line': d, incidents: lineIncident || 0, delays: lineDelay || 0})
                 }   
             )
-            console.log(svgSize)
+            if(selectedLine){
+                monthAgg = monthAgg.sort((a, b) => descending(a.line === selectedLine ? 0 : 1, b.line === selectedLine ? 0 : 1))
+            }
 
-		    const width = svgSize - margins.left - margins.right
-            const height = svgSize - margins.top - margins.left
-
-            const svg = select(svgRef.current)
-                .attr('width', svgSize)
-                .attr('height', svgSize)
-            
-            const g = svg.append('g')
-                .attr('transform', `translate(${margins.left},${margins.top})`)
-
-		    const xScale = scaleLinear().domain([0, 10]).range([0, width])
-            const yScale = scaleLinear().domain([60,0]).range([0, height])
-            
             const ele = g.selectAll('circ')
             .data(monthAgg.filter((d) => d.delays && d.incidents))
             .enter()
             .append('g')
-            
+            .style('opacity', (d) => selectedLine ? d.line === selectedLine ? 1 : .1 : 1)
+            .style('cursor', 'pointer')
+            .on('click', (_e, d) => {
+                if(d.line === selectedLine){
+                    setSelectedLine(null)
+                }else{
+                    setSelectedLine(d.line)
+                }  
+            })
+
             ele.append('circle')
             .attr('cx', (d) => xScale(d.incidents))
             .attr('cy', (d) => yScale(d.delays))
@@ -97,27 +167,23 @@ function PerformancePlot({incidents, delays, colors, selectedMonth, setSelectedM
             .style('text-anchor', 'middle')
             .style('fill', (d) => ['N', 'R', 'W', 'Q'].includes(d.line) ? 'black' : 'white')
 
-            g.append('g').call(axisBottom(xScale).ticks(5)).attr('transform', `translate(0, ${height})`)
-            g.append('g').call(axisLeft(yScale).ticks(5)).attr('transform', `translate(0, 0)`)
-
-            svg.append('text')
-            .text('Delays')
-            .style('font-size', abbr ? '13px' : '16px')
-            .attr('transform', `translate(${margins.left/2.5}, ${svgSize/2})rotate(-90)`)
-
-            svg.append('text')
-            .text('Major Incidents')
-            .style('font-size', abbr ? '13px' : '16px')
-            .attr('transform', `translate(${width/2}, ${height + margins.top + margins.bottom / 1.5})`)
-            .style('alignment-baseline', 'central')
-
             
         }
-    }, [abbr, colors, delayMap, incidentMap, lines, margins.bottom, margins.left, margins.right, margins.top, months, selectedMonth, setSelectedMonth, svgRef, svgSize])
+    }, [abbr, colors, delayMap, incidentMap, lines, margins.bottom, margins.left, margins.right, margins.top, months, selectedLine, selectedMonth, setSelectedLine, setSelectedMonth, svgRef, svgSize])
 
     return (
     <div> 
         <svg ref={svgRef}> </svg>
+        <div style={{ paddingLeft: '30px', paddingRight: '30px'}}>
+        {selectedMonth && (
+            <Slider sx={{color: colors['MTA'] || undefined}} marks={sliderMarks} value={months.indexOf(selectedMonth)} max={months.length} min={0} onChange={(_e, n) => {
+                if(Number(n) < months.length){
+                    setSelectedMonth(months[Number(n)])
+                }
+                
+            }} />
+        )}
+        </div>
     </div>
     );
 }
