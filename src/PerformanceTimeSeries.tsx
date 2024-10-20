@@ -72,7 +72,7 @@ function PerformanceTimeSeries({
         const xAxis = g.append('g').call(axisBottom(xScale).tickFormat((d) => dayjs(d).format('MMM-YY'))).attr('transform', `translate(0, ${height})`)
         g.append('g').call(axisLeft(yScale).ticks(5)).attr('transform', `translate(0, 0)`)
 
-        xAxis.selectAll('.tick')
+        xAxis.selectAll('.tick').style('display', 'none')
         xAxis.selectAll('.tick:nth-child(8n)').style('display', 'block')
 
         svg.append('text')
