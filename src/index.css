@@ -13,6 +13,8 @@ td {
   border-bottom: .5px solid black;
 }
 
+/* Loading animation courtesy of https://codepen.io/lenasta92579651/pen/bGgYXWv */
+
 .container {
   position: absolute;
   left: 50%;
